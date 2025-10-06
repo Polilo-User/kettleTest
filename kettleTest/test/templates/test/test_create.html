@@ -1,0 +1,14 @@
+{% extends 'main/layout.html' %}
+
+{% block title %}Создание теста{% endblock %}
+
+{% block content %}
+    <h1>Тесты</h1>
+    <form method="post">
+        {% csrf_token %}<br>
+        {{ form.title }}<br>
+        {{ form.description }}<br>
+        <span>{{ error }}</span>
+        <input type="submit" value="Создать тест">
+    </form>
+{% endblock %}

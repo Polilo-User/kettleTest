@@ -1,0 +1,25 @@
+{% extends "main/layout.html" %}
+
+{% block title %}{{ test.title }}{% endblock %}
+
+{% block content %}
+<h1 style="text-align:center;">{{ test.title }}</h1>
+
+<div class="card">
+  <form method="post">
+    {% csrf_token %}
+    {% for q in questions %}
+      <div class="question" style="margin-bottom:25px;">
+        <p><b>{{ forloop.counter }}. {{ q.text }}</b></p>
+        {% for a in q.answers.all %}
+          <label>
+            <input type="radio" name="q{{ q.id }}" value="{{ a.id }}">
+            {{ a.text }}
+          </label><br>
+        {% endfor %}
+      </div>
+    {% endfor %}
+    <button type="submit">Отправить</button>
+  </form>
+</div>
+{% endblock %}
