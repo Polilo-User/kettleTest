@@ -1,0 +1,338 @@
+{% extends "main/layout.html" %}
+
+{% block title %}Пройденные тесты{% endblock %}
+
+{% block content %}
+<style>
+  /* Общий контейнер */
+  .tests-container {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 0 16px;
+  }
+
+  /* Заголовок и кнопка */
+  .tests-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+
+  .tests-header h1 {
+    font-size: 1.8rem;
+    text-align: center;
+    flex: 1;
+  }
+
+  .home-btn {
+    background: #0069d9;
+    color: #fff;
+    border: none;
+    padding: 10px 14px;
+    border-radius: 6px;
+    text-decoration: none;
+    transition: 0.2s;
+    font-size: 0.95rem;
+  }
+
+  .home-btn:hover {
+    background: #0056b3;
+  }
+
+  /* Список тестов */
+  .tests-list {
+    list-style: none;
+    padding: 0;
+    display: grid;
+    gap: 12px;
+  }
+
+  .test-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center; /* центровка по вертикали */
+    padding: 14px;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    background: #fff;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .test-info {
+    flex: 1;
+    min-width: 200px;
+  }
+
+  .test-title {
+    font-weight: 700;
+    font-size: 16px;
+    color: #111;
+  }
+
+  .test-desc {
+    font-size: 13px;
+    color: #666;
+    margin-top: 6px;
+  }
+
+  /* Блок с кнопками */
+  .test-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-shrink: 0;
+  }
+
+  /* Кнопки одинаковой высоты */
+  .btn-view,
+  .btn-send {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: 40px; /* ← одинаковая высота */
+    padding: 0 16px;
+    font-size: 14px;
+    border-radius: 6px;
+    cursor: pointer;
+    text-decoration: none;
+    transition: background 0.2s, transform 0.1s;
+    white-space: nowrap;
+    box-sizing: border-box;
+  }
+
+  .btn-view {
+    border: 1px solid #b7d4ff;
+    color: #0366d6;
+    background: #f8faff;
+  }
+
+  .btn-view:hover {
+    background: #e9f1ff;
+  }
+
+  .btn-send {
+    background: #007bff;
+    color: #fff;
+    border: none;
+  }
+
+  .btn-send:hover {
+    background: #0069d9;
+  }
+
+  /* Модалка */
+  #sendModal {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.45);
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+  }
+
+  #sendModal input {
+    width: 100%;
+    padding: 10px 14px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    font-size: 0.95rem;
+    box-sizing: border-box;
+  }
+
+  #sendModal .modal-content {
+    width: 100%;
+    max-width: 480px;
+    background: white;
+    padding: 24px 28px;
+    border-radius: 8px;
+  }
+
+  /* Адаптивность */
+  @media (max-width: 600px) {
+    .tests-header {
+      flex-direction: column;
+    }
+
+    .test-item {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+
+    .test-actions {
+      width: 100%;
+      justify-content: flex-start;
+    }
+
+    .btn-view,
+    .btn-send {
+      width: 100%;
+      text-align: center;
+    }
+
+    .tests-header h1 {
+      font-size: 1.4rem;
+    }
+  }
+</style>
+
+
+
+
+<div class="tests-container">
+  <div class="tests-header">
+    <h1>Пройденные тесты</h1>
+    <a href="{% url 'test_home' %}" class="home-btn">🏠 На главную</a>
+  </div>
+
+  {% if tests %}
+    <ul class="tests-list">
+      {% for t in tests %}
+        <li class="test-item">
+          <div class="test-info">
+            <div class="test-title">{{ t.title }}</div>
+            <div class="test-desc">Отвечено на {{ t.answers_count }} вопросов</div>
+          </div>
+
+          <div class="test-actions">
+            <a href="{% url 'test_result' t.id %}" class="btn-view">Посмотреть результат</a>
+
+            <button class="btn-send send-btn"
+                    data-method="email"
+                    data-test-id="{{ t.id }}"
+                    data-title="{{ t.title }}"
+                    style="margin-bottom: 7%;">
+              📧 Email
+            </button>
+          </div>
+        </li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p style="text-align:center; color:#666;">Вы ещё не проходили тесты.</p>
+  {% endif %}
+</div>
+
+<!-- Modal -->
+<div id="sendModal">
+  <div class="modal-content">
+    <h3 id="modalHeading" style="margin:0 0 8px 0;">Отправка результата</h3>
+    <p id="modalSubtitle" style="margin:0 0 12px 0; color:#555"></p>
+
+    <div style="margin-bottom:8px;">
+      <label for="contactInput" style="display:block; font-weight:600; margin-bottom:6px;">Куда отправить</label>
+      <input id="contactInput" type="text" style="width:100%; padding: 10px; border:1px solid #ddd; border-radius:6px;" />
+      <div id="contactHelp" style="font-size:12px; color:#666; margin-top:6px;"></div>
+    </div>
+
+    <div style="display:flex; justify-content:flex-end; gap:8px; flex-wrap:wrap;">
+      <button onclick="closeModal()" style="padding:8px 12px; border-radius:6px; border:1px solid #ddd; background:#f5f5f5; color:#111;">Отмена</button>
+      <button id="modalSendBtn" style="padding:8px 12px; border-radius:6px; background:#0069d9; color:white; border:none;">Отправить</button>
+    </div>
+
+    <div id="modalMsg" style="margin-top:12px; font-size:14px;"></div>
+  </div>
+</div>
+
+<script>
+  // --- JS остаётся тем же ---
+  function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+      const cookies = document.cookie.split(';');
+      for (let i = 0; i < cookies.length; i++) {
+        const cookie = cookies[i].trim();
+        if (cookie.substring(0, name.length + 1) === (name + '=')) {
+          cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+          break;
+        }
+      }
+    }
+    return cookieValue;
+  }
+  const csrftoken = getCookie('csrftoken');
+
+  const modal = document.getElementById('sendModal');
+  const contactInput = document.getElementById('contactInput');
+  const modalHeading = document.getElementById('modalHeading');
+  const modalSubtitle = document.getElementById('modalSubtitle');
+  const contactHelp = document.getElementById('contactHelp');
+  const modalMsg = document.getElementById('modalMsg');
+  const modalSendBtn = document.getElementById('modalSendBtn');
+
+  let currentTestId = null;
+  let currentMethod = null;
+
+  document.querySelectorAll('.send-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      currentTestId = btn.dataset.testId;
+      currentMethod = btn.dataset.method;
+      const title = btn.dataset.title;
+      openModal(currentMethod, currentTestId, title);
+    });
+  });
+
+  function openModal(method, testId, title) {
+    modal.style.display = 'flex';
+    contactInput.value = '';
+    modalMsg.textContent = '';
+    currentTestId = testId;
+    currentMethod = method;
+
+    modalHeading.textContent = method === 'email' ? 'Отправить результат на почту' : 'Отправить результат в Telegram';
+    modalSubtitle.textContent = `Тест: ${title}`;
+
+    if (method === 'email') {
+      contactInput.placeholder = 'Введите email (например: user@example.com)';
+      contactHelp.textContent = 'Результат придёт на указанный email.';
+    }
+  }
+
+  function closeModal() {
+    modal.style.display = 'none';
+  }
+
+  modalSendBtn.addEventListener('click', () => {
+    const contact = contactInput.value.trim();
+    if (!contact) {
+      modalMsg.style.color = 'red';
+      modalMsg.textContent = 'Заполните поле.';
+      return;
+    }
+    modalSendBtn.disabled = true;
+    modalMsg.style.color = '#333';
+    modalMsg.textContent = 'Отправка...';
+
+    const url = currentMethod === 'email' ? "{% url 'send_result_email' %}" : "{% url 'send_result_telegram' %}";
+    const form = new FormData();
+    form.append('test_id', currentTestId);
+    form.append('contact', contact);
+
+    fetch(url, {
+      method: 'POST',
+      headers: { 'X-CSRFToken': csrftoken },
+      body: form
+    }).then(r => r.json())
+      .then(data => {
+        modalSendBtn.disabled = false;
+        if (data.ok) {
+          modalMsg.style.color = 'green';
+          modalMsg.textContent = 'Отправлено успешно!';
+          setTimeout(closeModal, 1200);
+        } else {
+          modalMsg.style.color = 'red';
+          modalMsg.textContent = data.error || 'Ошибка при отправке';
+        }
+      })
+      .catch(() => {
+        modalSendBtn.disabled = false;
+        modalMsg.style.color = 'red';
+        modalMsg.textContent = 'Сетевая ошибка';
+      });
+  });
+</script>
+{% endblock %}

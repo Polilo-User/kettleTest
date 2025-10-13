@@ -4,17 +4,49 @@
 
 {% block content %}
 <h1 style="text-align:center;">Выберите тест</h1>
+
 <div style="
     display:grid;
     grid-template-columns:repeat(auto-fit, minmax(220px, 1fr));
     gap:20px;
 ">
   {% for test in tests %}
-    <a href="{% url 'test_detail' test.pk %}" class="card" style="text-align:center; text-decoration:none; font-weight:bold; color:#333;">
+    <a href="{% url 'test_detail' test.pk %}" 
+       class="card" 
+       style="text-align:center; 
+              text-decoration:none; 
+              font-weight:bold; 
+              color:#333;
+              padding: 20px;
+              border: 1px solid #ddd;
+              border-radius: 8px;
+              background-color: #f9f9f9;
+              transition: 0.2s;"
+       onmouseover="this.style.backgroundColor='#eef5ff'"
+       onmouseout="this.style.backgroundColor='#f9f9f9'">
       {{ test.title }}
     </a>
   {% empty %}
     <p style="text-align:center;">Тестов пока нет</p>
   {% endfor %}
 </div>
+
+<div style="text-align:center; margin-bottom: 25px;">
+  <a href="{% url 'results_list' %}" 
+     style="
+       display:inline-block;
+       background-color:#007bff;
+       color:white;
+       padding:10px 20px;
+       border-radius:8px;
+       text-decoration:none;
+       font-weight:bold;
+       transition:0.2s;
+     "
+     onmouseover="this.style.backgroundColor='#0056b3'"
+     onmouseout="this.style.backgroundColor='#007bff'">
+    Мои результаты
+  </a>
+</div>
+
 {% endblock %}

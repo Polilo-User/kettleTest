@@ -3,7 +3,7 @@
 {% block title %}Результаты теста{% endblock %}
 
 {% block content %}
-<h1 style="text-align:center;">Результаты теста {{test.title}}</h1>
+<h1 style="text-align:center;">Результаты теста {{ test.title }}</h1>
 
 <div class="results-container" style="margin: 20px auto; max-width: 800px;">
   {% if result %}
@@ -21,5 +21,13 @@
   {% else %}
     <p style="text-align:center; color: #777;">Нет доступных результатов.</p>
   {% endif %}
+</div>
+
+<!-- Кнопка "Вернуться к тестам" -->
+<div style="text-align:center; margin-top: 30px;">
+  <a href="{% url 'test_home' %}" 
+     style="display:inline-block; background:#007bff; color:#fff; padding:10px 18px; border-radius:6px; text-decoration:none; font-size:15px; transition:background 0.2s;">
+     ← Вернуться к тестам
+  </a>
 </div>
 {% endblock %}
