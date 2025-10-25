@@ -60,7 +60,7 @@ class Result(models.Model):
     categories = models.JSONField(default=list)
 
     def __str__(self):
-        return f'{self.name}'
+        return f'{self.id} {self.name} {self.categories}'
 
     class Meta:
         verbose_name = 'Результат'

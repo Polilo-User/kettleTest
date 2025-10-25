@@ -194,15 +194,15 @@
       {% for t in tests %}
         <li class="test-item">
           <div class="test-info">
-            <div class="test-title">{{ t.title }}</div>
-            <div class="test-desc">Отвечено на {{ t.answers_count }} вопросов</div>
+            <div class="test-title">{{t.at_id}} {{ t.title }} — Пройден: {{ t.date|date:"d.m.Y" }}</div>
           </div>
 
           <div class="test-actions">
-            <a href="{% url 'test_result' t.id %}" class="btn-view">Посмотреть результат</a>
+            <a href="{% url 'test_result' t.id t.at_id %}" class="btn-view">Посмотреть результат</a>
 
             <button class="btn-send send-btn"
                     data-method="email"
+                    data-at_id="{{ t.at_id }}"
                     data-test-id="{{ t.id }}"
                     data-title="{{ t.title }}"
                     style="margin-bottom: 7%;">
@@ -239,7 +239,6 @@
 </div>
 
 <script>
-  // --- JS остаётся тем же ---
   function getCookie(name) {
     let cookieValue = null;
     if (document.cookie && document.cookie !== '') {
@@ -266,13 +265,15 @@
 
   let currentTestId = null;
   let currentMethod = null;
+  let currentAttemptIndex = null; // ← добавили переменную для at_id
 
   document.querySelectorAll('.send-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      currentTestId = btn.dataset.testId;
-      currentMethod = btn.dataset.method;
-      const title = btn.dataset.title;
-      openModal(currentMethod, currentTestId, title);
+  btn.addEventListener('click', () => {
+    currentTestId = btn.dataset.testId;
+    currentMethod = btn.dataset.method;
+    currentAttemptIndex = btn.dataset.at_id; // ← добавили at_id
+    const title = btn.dataset.title;
+    openModal(currentMethod, currentTestId, title);
     });
   });
 
@@ -297,42 +298,49 @@
   }
 
   modalSendBtn.addEventListener('click', () => {
-    const contact = contactInput.value.trim();
-    if (!contact) {
+  const contact = contactInput.value.trim();
+  if (!contact) {
+    modalMsg.style.color = 'red';
+    modalMsg.textContent = 'Заполните поле.';
+    return;
+  }
+
+  modalSendBtn.disabled = true;
+  modalMsg.style.color = '#333';
+  modalMsg.textContent = 'Отправка...';
+
+  const url = currentMethod === 'email' ? "{% url 'send_result_email' %}" : "{% url 'send_result_telegram' %}";
+
+  fetch(url, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-CSRFToken': csrftoken
+    },
+    body: JSON.stringify({
+      test_id: currentTestId,
+      email: contact,
+      at_id: currentAttemptIndex // ← отправляем сюда
+    })
+  })
+  .then(r => r.json())
+  .then(data => {
+    modalSendBtn.disabled = false;
+    if (data.ok) {
+      modalMsg.style.color = 'green';
+      modalMsg.textContent = 'Отправлено успешно!';
+      setTimeout(closeModal, 1200);
+    } else {
       modalMsg.style.color = 'red';
-      modalMsg.textContent = 'Заполните поле.';
-      return;
+      modalMsg.textContent = data.error || 'Ошибка при отправке';
     }
-    modalSendBtn.disabled = true;
-    modalMsg.style.color = '#333';
-    modalMsg.textContent = 'Отправка...';
-
-    const url = currentMethod === 'email' ? "{% url 'send_result_email' %}" : "{% url 'send_result_telegram' %}";
-    const form = new FormData();
-    form.append('test_id', currentTestId);
-    form.append('contact', contact);
-
-    fetch(url, {
-      method: 'POST',
-      headers: { 'X-CSRFToken': csrftoken },
-      body: form
-    }).then(r => r.json())
-      .then(data => {
-        modalSendBtn.disabled = false;
-        if (data.ok) {
-          modalMsg.style.color = 'green';
-          modalMsg.textContent = 'Отправлено успешно!';
-          setTimeout(closeModal, 1200);
-        } else {
-          modalMsg.style.color = 'red';
-          modalMsg.textContent = data.error || 'Ошибка при отправке';
-        }
-      })
-      .catch(() => {
-        modalSendBtn.disabled = false;
-        modalMsg.style.color = 'red';
-        modalMsg.textContent = 'Сетевая ошибка';
-      });
+  })
+  .catch(() => {
+    modalSendBtn.disabled = false;
+    modalMsg.style.color = 'red';
+    modalMsg.textContent = 'Сетевая ошибка';
   });
+});
 </script>
+
 {% endblock %}
