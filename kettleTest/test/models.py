@@ -65,3 +65,16 @@ class Result(models.Model):
     class Meta:
         verbose_name = 'Результат'
         verbose_name_plural = 'Результаты'
+
+
+class Direction(models.Model):
+    name = models.CharField(max_length=100, null=True, blank=True)
+    description = models.TextField()
+    categories = models.JSONField(default=list)
+
+    def __str__(self):
+        return f'{self.id} {self.name} {self.categories}'
+
+    class Meta:
+        verbose_name = 'Направление'
+        verbose_name_plural = 'Направления'

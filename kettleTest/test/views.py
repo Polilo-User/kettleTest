@@ -1,5 +1,6 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from .models import Test, Question, Answer, Result, Category
+from .models import Test, Question, Answer, Result, Category, Direction
+from django.db.models.expressions import RawSQL
 from .forms import TestForm
 from django.views.generic import DetailView
 from collections import defaultdict
@@ -69,12 +70,32 @@ def test_detail(request, pk):
         if set(result.categories).issubset(set(category_results))
         ]
 
+
+        directions = Direction.objects.all()
+
+        input_set = set(category_results)
+
+        best = []
+        max_match = 0
+
+        for d in directions:
+            match = len(set(d.categories) & input_set)
+            if match > max_match:
+                best = [d]
+                max_match = match
+            elif match == max_match:
+                best.append(d)
+
+        if len(best) == 0 :
+            best = Direction.objects.all()
+
         attempts = request.session.get(attempts_key, [])
 
         attempts.append({
             "at_id": len(attempts),
             "result_ids": [r.id for r in matching_results],
             "date": now().isoformat(),
+            "direction": [b.name for b in best],
         })
 
         request.session[attempts_key] = attempts
@@ -93,10 +114,11 @@ def test_result(request, pk, atId):
     for inf in info: 
         if inf.get("at_id") == atId:
             result_ids = inf.get("result_ids", [])
+            direction = inf.get("direction", [])
             break
     matching_results = Result.objects.filter(id__in=result_ids)
 
-    return render(request, "test/result.html", {"result": matching_results, "test": test})
+    return render(request, "test/result.html", {"result": matching_results, "test": test, "direction": direction})
 
 def results_list(request):
     tests_data = []

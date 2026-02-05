@@ -6,6 +6,17 @@
 <h1 style="text-align:center;">Результаты теста {{ test.title }}</h1>
 
 <div class="results-container" style="margin: 20px auto; max-width: 800px;">
+  {% if direction %}
+  <div class="card" style="padding: 20px; margin-bottom: 20px; border: 1px solid #ddd; border-radius: 8px; background-color: #f9f9f9;">
+    <p style="font-weight: bold; font-size: 18px; color: #333;">Вам подходит одно из следующих направлений:</p>
+    {% for d in direction %}
+      <p style="font-weight: bold; font-size: 16px; margin-bottom: 10px; color: #333;">
+          {{ d }}
+        </p>
+    {% endfor %}
+  </div>
+  {% endif %}
+
   {% if result %}
     {% for r in result %}
       <div class="card" style="padding: 20px; margin-bottom: 20px; border: 1px solid #ddd; border-radius: 8px; background-color: #f9f9f9;">
