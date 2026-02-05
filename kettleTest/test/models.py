@@ -3,7 +3,7 @@ from django.db import models
 class Test(models.Model):
     title = models.CharField('Название', max_length=100)
     description = models.TextField('Описание')
-    createDate = models.DateTimeField('Дата создания', auto_now_add=True)
+    createdate = models.DateTimeField('Дата создания', auto_now_add=True)
 
     def __str__(self):
         return self.title
