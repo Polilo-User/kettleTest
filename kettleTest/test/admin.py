@@ -1,6 +1,10 @@
 from django.contrib import admin
 from .models import *
 
+admin.site.register(LuscherColor)
+admin.site.register(LuscherPositionRule)
+admin.site.register(LuscherMainPair)
+admin.site.register(LuscherConflictRule)
 admin.site.register(Test)
 admin.site.register(Question)
 admin.site.register(Answer)

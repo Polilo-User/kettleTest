@@ -181,8 +181,6 @@
 </style>
 
 
-
-
 <div class="tests-container">
   <div class="tests-header">
     <h1>Пройденные тесты</h1>
@@ -194,17 +192,17 @@
       {% for t in tests %}
         <li class="test-item">
           <div class="test-info">
-            <div class="test-title">{{t.at_id}} {{ t.title }} — Пройден: {{ t.date|date:"d.m.Y" }}</div>
+            <div class="test-title">{{ t.id }} {{ t.test.title }} — Пройден: {{ t.created_at|date:"d.m.Y H:i" }}</div>
           </div>
 
           <div class="test-actions">
-            <a href="{% url 'test_result' t.id t.at_id %}" class="btn-view">Посмотреть результат</a>
+            <a href="{% url 'test_result' t.test.id t.id %}" class="btn-view">Посмотреть результат</a>
 
             <button class="btn-send send-btn"
                     data-method="email"
-                    data-at_id="{{ t.at_id }}"
-                    data-test-id="{{ t.id }}"
-                    data-title="{{ t.title }}"
+                    data-at_id="{{ t.id }}"
+                    data-test-id="{{ t.test.id }}"
+                    data-title="{{ t.test.title }}"
                     style="margin-bottom: 7%;">
               📧 Email
             </button>

@@ -3,6 +3,7 @@
 {% block title %}Список тестов{% endblock %}
 
 {% block content %}
+
 <h1 style="text-align:center;">Выберите тест</h1>
 
 <div style="
@@ -48,5 +49,142 @@
     Мои результаты
   </a>
 </div>
+
+<!-- МОДАЛЬНОЕ ОКНО -->
+<div id="userModal" style="
+    display:none;
+    position:fixed;
+    z-index:1000;
+    left:0; 
+    top:0;
+    width:100%; 
+    height:100%;
+    background:rgba(0,0,0,0.5);
+">
+  <div style="
+      background:white;
+      width:90%;
+      max-width:500px;
+      margin:5% auto;
+      padding:20px;
+      border-radius:10px;
+      font-family: Arial, sans-serif;
+  ">
+    <h2 style="text-align:center; margin-bottom:20px;">Общие данные</h2>
+
+    <form method="POST">
+      {% csrf_token %}
+
+      <label>Статус:</label><br>
+      <select name="status" required class="modal-field">
+        <option value="school">Школьник</option>
+        <option value="student">Студент</option>
+        <option value="worker">Работающий</option>
+      </select><br>
+
+      <label>Возраст:</label><br>
+      <input type="number" name="age" required class="modal-field"><br>
+
+      <label>Пол:</label><br>
+      <select name="gender" required class="modal-field">
+        <option value="male">Мужской</option>
+        <option value="female">Женский</option>
+      </select><br>
+
+      <div id="educationDirection" style="display:none;">
+        <label>Направление обучения:</label><br>
+        <select name="education_direction" required class="modal-field">
+          <option value="science">Естественные науки</option>
+          <option value="social">Социальные науки</option>
+          <option value="humanities">Гуманитарные науки</option>
+          <option value="technical">Технические специальности</option>
+          <option value="economics">Экономика и управление</option>
+        </select><br>
+      </div>
+
+      <div id="avgScore" style="display:none;">
+        <label>Средний балл:</label><br>
+        <input type="number" step="0.1" name="avg_score" required class="modal-field"><br>
+      </div>
+
+      <div id="workField" style="display:none;">
+        <label>Направление работы:</label><br>
+        <select name="work_direction" class="modal-field">
+          <option value="science">Естественные науки</option>
+          <option value="social">Социальные науки</option>
+          <option value="humanities">Гуманитарные науки</option>
+          <option value="technical">Технические специальности</option>
+          <option value="economics">Экономика и управление</option>
+        </select><br>
+      </div>
+
+      <button type="submit" class="modal-button">
+        Сохранить
+      </button>
+
+    </form>
+  </div>
+</div>
+
+<style>
+  .modal-field {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 15px;
+      font-size: 1rem;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      box-sizing: border-box;
+  }
+
+  .modal-button {
+      width: 100%;
+      padding: 12px;
+      background: #007bff;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-weight: bold;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: background 0.2s;
+  }
+
+  .modal-button:hover {
+      background: #0056b3;
+  }
+</style>
+
+<script>
+  const modal = document.getElementById('userModal');
+  const statusField = document.querySelector('[name="status"]');
+  const workField = document.getElementById('workField');
+  const educationField = document.getElementById('educationDirection');
+  const scoreField = document.getElementById('avgScore');
+
+  const hasData = "{{ user_data|yesno:'true,false' }}";
+
+  if (hasData === "false") {
+      modal.style.display = "block";
+  }
+
+  function updateFields() {
+      if (statusField.value === 'worker') {
+          workField.style.display = 'block';
+          educationField.style.display = 'none';
+          scoreField.style.display = 'none';
+      } else {
+          workField.style.display = 'none';
+          educationField.style.display = 'block';
+          scoreField.style.display = 'block';
+      }
+  }
+
+  // при изменении
+  statusField.addEventListener('change', updateFields);
+
+  // при загрузке страницы (важно!)
+  updateFields();
+</script>
 
 {% endblock %}

@@ -1,0 +1,239 @@
+{% extends "main/layout.html" %}
+
+{% block title %}{{ test.title }}{% endblock %}
+
+{% block content %}
+
+<h1 style="text-align:center;">{{ test.title }}</h1>
+
+<div class="card" style="max-width:800px; margin:0 auto; padding:20px;">
+
+<p style="text-align:center;">
+Выбирайте цвета по порядку — от самого приятного к самому неприятному
+</p>
+
+<p style="text-align:center; font-weight:bold;">
+<span id="timer" style="display:none;">20</span>
+</p>
+
+<form method="post">
+{% csrf_token %}
+
+<ul id="colors">
+
+{% for q in questions %}
+{% for a in q.answers.all %}
+
+<li class="color-item"
+    data-id="{{ a.id }}"
+    style="background: {{ a.text }};">
+</li>
+
+{% endfor %}
+{% endfor %}
+
+</ul>
+
+<input type="hidden" name="first_attempt" id="firstAttempt">
+<input type="hidden" name="second_attempt" id="secondAttempt">
+
+<div style="text-align:center; margin-top:20px;">
+
+<button type="button" id="nextBtn">
+Далее
+</button>
+
+<button type="submit" id="submitBtn" style="display:none;">
+Отправить
+</button>
+
+</div>
+
+</form>
+
+</div>
+
+<style>
+
+#colors{
+display:flex;
+justify-content:center;
+gap:12px;
+padding:0;
+list-style:none;
+flex-wrap:wrap;
+}
+
+.color-item{
+width:80px;
+height:80px;
+border-radius:8px;
+cursor:pointer;
+transition:all 0.25s ease;
+}
+
+.color-item:hover{
+transform:scale(1.05);
+}
+
+.color-item.removed{
+transform:scale(0);
+opacity:0;
+}
+
+</style>
+
+
+<script>
+
+const colorsContainer = document.getElementById("colors");
+const nextBtn = document.getElementById("nextBtn");
+const submitBtn = document.getElementById("submitBtn");
+const timerElement = document.getElementById("timer");
+
+let attempt = 1;
+
+let firstOrder = [];
+let secondOrder = [];
+
+let timer;
+let timeLeft = 20;
+
+let totalColors = document.querySelectorAll(".color-item").length;
+
+
+
+// КЛИК ПО ЦВЕТУ
+function addClickEvents(){
+
+document.querySelectorAll(".color-item").forEach(item=>{
+
+item.addEventListener("click",function(){
+
+const id = this.dataset.id;
+
+if(attempt === 1){
+
+firstOrder.push(id);
+
+}else{
+
+secondOrder.push(id);
+
+}
+
+this.classList.add("removed");
+
+setTimeout(()=>{
+this.remove();
+},250);
+
+});
+
+});
+
+}
+
+addClickEvents();
+
+
+
+// КНОПКА ДАЛЕЕ
+nextBtn.addEventListener("click",function(){
+
+if(firstOrder.length !== totalColors){
+alert("Выберите все цвета");
+return;
+}
+
+document.getElementById("firstAttempt").value =
+firstOrder.join(",");
+
+nextBtn.style.display = "none";
+
+startTimer();
+
+});
+
+
+
+// ТАЙМЕР
+function startTimer(){
+
+timerElement.style.display="block";
+
+timeLeft = 20;
+timerElement.textContent = timeLeft;
+
+timer = setInterval(()=>{
+
+timeLeft--;
+
+timerElement.textContent = timeLeft;
+
+if(timeLeft <= 0){
+
+clearInterval(timer);
+
+startSecondAttempt();
+
+}
+
+},1000);
+
+}
+
+
+
+// ВТОРАЯ ПОПЫТКА
+function startSecondAttempt(){
+
+timerElement.style.display="none";
+
+attempt = 2;
+
+
+// создаем цвета заново
+colorsContainer.innerHTML = "";
+
+{% for q in questions %}
+{% for a in q.answers.all %}
+
+let color{{a.id}} = document.createElement("li");
+
+color{{a.id}}.className = "color-item";
+color{{a.id}}.dataset.id = "{{a.id}}";
+color{{a.id}}.style.background = "{{a.text}}";
+
+colorsContainer.appendChild(color{{a.id}});
+
+{% endfor %}
+{% endfor %}
+
+
+// снова добавляем клики
+addClickEvents();
+
+submitBtn.style.display = "inline-block";
+
+}
+
+
+
+// отправка формы
+document.querySelector("form").addEventListener("submit",function(){
+
+if(secondOrder.length !== totalColors){
+alert("Выберите все цвета");
+event.preventDefault();
+return;
+}
+
+document.getElementById("secondAttempt").value =
+secondOrder.join(",");
+
+});
+
+</script>
+
+{% endblock %}
