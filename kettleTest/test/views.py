@@ -235,14 +235,9 @@ def send_result_telegram(request):
     return JsonResponse({"ok": True})
     
 
-
 @require_POST
 @csrf_protect
 def send_result_email(request):
-    """
-    Ожидает JSON: { "test_id": int, "at_id": int, "email": str }
-    Отправляет итог теста (с реальными результатами, как на странице test_result).
-    """
     try:
         try:
             data = json.loads(request.body.decode('utf-8'))
@@ -250,65 +245,39 @@ def send_result_email(request):
             return JsonResponse({"ok": False, "error": "Неверный формат JSON"}, status=400)
 
         test_id = data.get("test_id")
-        atId = data.get("at_id")
+        at_id = data.get("at_id")
         email = data.get("email")
 
-        if test_id is None or atId is None or not email:
+        if not test_id or not at_id or not email:
             return JsonResponse({"ok": False, "error": "Не указаны обязательные поля"}, status=400)
 
         test = get_object_or_404(Test, id=test_id)
-        attempts_key = f"test_{test.id}"
-        info = request.session.get(attempts_key, [])
-        ourInf = {}
-        
-        for inf in info: 
-            if str(inf.get("at_id")) == atId:
-                ourInf = inf
-                break
-        if not ourInf:
-            return JsonResponse({"ok": False, "error": "Попытка не найдена"}, status=404)
 
-        raw_date = ourInf.get("date")
+        session_key = get_session_key(request)
 
-        date_obj = None
-        if raw_date:
-            date_obj = parse_datetime(raw_date)
-            if date_obj and is_naive(date_obj):
+        attempt = TestResult.objects.filter(
+            session_key=session_key, test=test, id=at_id
+        ).select_related('test').order_by('-created_at').first()
+
+        # 📅 Дата
+        date_obj = attempt.created_at
+        if date_obj:
+            if is_naive(date_obj):
                 date_obj = make_aware(date_obj, timezone=get_current_timezone())
-            if date_obj:
-                date_obj = localtime(date_obj)
-
+            date_obj = localtime(date_obj)
 
         body_lines = [
             f"Результаты теста: {test.title}",
             f"Дата прохождения: {date_obj.strftime('%d.%m.%Y %H:%M') if date_obj else '—'}",
             "",
-            "Итог:",
+            f"Итог: {attempt.result_text}",
         ]
 
 
 
-        if data["test_id"] == '3': 
-            matching_results = Result.objects.filter(id__in=ourInf.get("result_ids", []))
-        elif data["test_id"] == '4': 
-            matching_results = Result.objects.filter(id=ourInf.get("result"))
-        
-        if len(matching_results) != 0:
-            if matching_results:
-                for res in matching_results:
-                    body_lines.append(f"- {res.name}")
-                    body_lines.append(f"{res.description}")
-            else:
-                body_lines.append("Подходящий результат не найден.")
-        else: 
-            for res in ourInf.get("description", "").split("\n\n"):
-                body_lines.append(res)
-
-        body_text = "\n".join(body_lines)
-
         send_mail(
             subject=f"Результаты теста '{test.title}'",
-            message=body_text,
+            message="\n".join(body_lines),
             from_email=None,
             recipient_list=[email],
             fail_silently=False,
@@ -318,7 +287,6 @@ def send_result_email(request):
 
     except Exception as e:
         return JsonResponse({"ok": False, "error": str(e)}, status=500)
-    
 
 
 def analyze_luscher(first_attempt, second_attempt):
