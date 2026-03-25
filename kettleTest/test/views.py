@@ -49,174 +49,174 @@ def test_home(request):
         'user_data': False
     })
 
-def test_detail(request, pk):
-    test = get_object_or_404(Test, pk=pk)
-    questions = Question.objects.filter(test=test).prefetch_related("answers")
-    attempts_key = f"test_{test.id}"
+# def test_detail(request, pk):
+#     test = get_object_or_404(Test, pk=pk)
+#     questions = Question.objects.filter(test=test).prefetch_related("answers")
+#     attempts_key = f"test_{test.id}"
 
-    if request.method == "POST":
-        user_answersq = {}
-        for q in questions:
-            answer_id = request.POST.get(f"q{q.id}")
-            if answer_id:
-                user_answersq[q.id] = int(answer_id)
+#     if request.method == "POST":
+#         user_answersq = {}
+#         for q in questions:
+#             answer_id = request.POST.get(f"q{q.id}")
+#             if answer_id:
+#                 user_answersq[q.id] = int(answer_id)
         
-        scoreskettle = defaultdict(int)
-        scoresholland = defaultdict(int)
+#         scoreskettle = defaultdict(int)
+#         scoresholland = defaultdict(int)
         
 
-        if test.id == 3:
-            for _, aid in user_answersq.items():
-                try:
-                    answer = Answer.objects.get(id=aid)
-                    category = answer.question.category
-                    scoreskettle[category] += answer.score
-                except Answer.DoesNotExist:
-                    continue
+#         if test.id == 3:
+#             for _, aid in user_answersq.items():
+#                 try:
+#                     answer = Answer.objects.get(id=aid)
+#                     category = answer.question.category
+#                     scoreskettle[category] += answer.score
+#                 except Answer.DoesNotExist:
+#                     continue
 
-            category_results = []
-            for cat_name, score in scoreskettle.items():
-                range_match = Category.objects.filter(
-                    name=cat_name,
-                    minVal__lte=score,
-                    maxVal__gte=score
-                ).first()
+#             category_results = []
+#             for cat_name, score in scoreskettle.items():
+#                 range_match = Category.objects.filter(
+#                     name=cat_name,
+#                     minVal__lte=score,
+#                     maxVal__gte=score
+#                 ).first()
 
-                if range_match:
-                    if range_match.PlusOrMinus:
-                        category_results.append(f"{cat_name}+")
-                    else:
-                        category_results.append(f"{cat_name}-")
+#                 if range_match:
+#                     if range_match.PlusOrMinus:
+#                         category_results.append(f"{cat_name}+")
+#                     else:
+#                         category_results.append(f"{cat_name}-")
                 
-            all_results = Result.objects.all()
+#             all_results = Result.objects.all()
 
-            matching_results = [
-            result for result in all_results
-            if set(result.categories).issubset(set(category_results))
-            ]
+#             matching_results = [
+#             result for result in all_results
+#             if set(result.categories).issubset(set(category_results))
+#             ]
 
 
-            directions = Direction.objects.all()
+#             directions = Direction.objects.all()
 
-            input_set = set(category_results)
+#             input_set = set(category_results)
 
-            best = []
-            max_match = 0
+#             best = []
+#             max_match = 0
 
-            for d in directions:
-                match = len(set(d.categories) & input_set)
-                if match > max_match:
-                    best = [d]
-                    max_match = match
-                elif match == max_match:
-                    best.append(d)
+#             for d in directions:
+#                 match = len(set(d.categories) & input_set)
+#                 if match > max_match:
+#                     best = [d]
+#                     max_match = match
+#                 elif match == max_match:
+#                     best.append(d)
 
-            if len(best) == 0 :
-                best = Direction.objects.all()
+#             if len(best) == 0 :
+#                 best = Direction.objects.all()
 
-            attempts = request.session.get(attempts_key, [])
+#             attempts = request.session.get(attempts_key, [])
 
-            attempts.append({
-                "at_id": len(attempts),
-                "result_ids": [r.id for r in matching_results],
-                "date": now().isoformat(),
-                "direction": [b.name for b in best],
-            })
+#             attempts.append({
+#                 "at_id": len(attempts),
+#                 "result_ids": [r.id for r in matching_results],
+#                 "date": now().isoformat(),
+#                 "direction": [b.name for b in best],
+#             })
 
-            request.session[attempts_key] = attempts
+#             request.session[attempts_key] = attempts
 
-            return redirect("test_result", pk=test.id, atId=len(attempts)-1)
-        elif test.id == 4: 
-            for _, aid in user_answersq.items():
-                try:
-                    answer = Answer.objects.get(id=aid)
-                    scoresholland[answer.score] += 1
-                except Answer.DoesNotExist:
-                    continue
+#             return redirect("test_result", pk=test.id, atId=len(attempts)-1)
+#         elif test.id == 4: 
+#             for _, aid in user_answersq.items():
+#                 try:
+#                     answer = Answer.objects.get(id=aid)
+#                     scoresholland[answer.score] += 1
+#                 except Answer.DoesNotExist:
+#                     continue
 
-            max_key = max(scoresholland, key=scoresholland.get)
+#             max_key = max(scoresholland, key=scoresholland.get)
             
-            res = [
-                r for r in Result.objects.filter(test=test.id)
-                if max_key in r.categories
-            ]
-            res = res[0] if res else None
-            attempts = request.session.get(attempts_key, [])
+#             res = [
+#                 r for r in Result.objects.filter(test=test.id)
+#                 if max_key in r.categories
+#             ]
+#             res = res[0] if res else None
+#             attempts = request.session.get(attempts_key, [])
 
-            attempts.append({
-                "at_id": len(attempts),
-                "result": res.id if res else None,
-                "date": now().isoformat(),
-            })
+#             attempts.append({
+#                 "at_id": len(attempts),
+#                 "result": res.id if res else None,
+#                 "date": now().isoformat(),
+#             })
 
-            request.session[attempts_key] = attempts
+#             request.session[attempts_key] = attempts
                 
-            return redirect("test_result", pk=test.id, atId=len(attempts)-1)
-        elif test.id == 5:
-            first_attempt = request.POST.get("first_attempt")
-            second_attempt = request.POST.get("second_attempt")
+#             return redirect("test_result", pk=test.id, atId=len(attempts)-1)
+#         elif test.id == 5:
+#             first_attempt = request.POST.get("first_attempt")
+#             second_attempt = request.POST.get("second_attempt")
 
-            first = [int(x) for x in first_attempt.split(",")]
-            second = [int(x) for x in second_attempt.split(",")]
+#             first = [int(x) for x in first_attempt.split(",")]
+#             second = [int(x) for x in second_attempt.split(",")]
 
-            result_text = analyze_luscher(first, second)
-            result_objects = []
+#             result_text = analyze_luscher(first, second)
+#             result_objects = []
 
-            attempts = request.session.get(attempts_key, [])
+#             attempts = request.session.get(attempts_key, [])
 
-            attempts.append({
-            "at_id": len(attempts)-1,
-            "name": "Тест Люшера",
-            "description": result_text,
-            "date": now().isoformat(),
-            })
+#             attempts.append({
+#             "at_id": len(attempts)-1,
+#             "name": "Тест Люшера",
+#             "description": result_text,
+#             "date": now().isoformat(),
+#             })
 
-            result_objects.append({
-            "at_id": len(attempts),
-            "name": "Тест Люшера",
-            "description": result_text,
-            "date": now().isoformat(),
-            })
+#             result_objects.append({
+#             "at_id": len(attempts),
+#             "name": "Тест Люшера",
+#             "description": result_text,
+#             "date": now().isoformat(),
+#             })
 
-            request.session[attempts_key] = result_objects
+#             request.session[attempts_key] = result_objects
 
-            return redirect("test_result", pk=test.id, atId=len(attempts)-1)
-    if test.id == 5:
-        return render(request, "test/lusher_detail.html", {"test": test, "questions": questions})
-    return render(request, "test/detail.html", {
-        "test": test,
-        "questions": questions,
-    })
+#             return redirect("test_result", pk=test.id, atId=len(attempts)-1)
+#     if test.id == 5:
+#         return render(request, "test/lusher_detail.html", {"test": test, "questions": questions})
+#     return render(request, "test/detail.html", {
+#         "test": test,
+#         "questions": questions,
+#     })
 
-def test_result(request, pk, atId):
-    test = get_object_or_404(Test, pk=pk)
-    result_ids = []
-    info = request.session.get(f"test_{test.id}", [])
-    if test.id == 3 :
-        for inf in info: 
-            if inf.get("at_id") == atId:
-                result_ids = inf.get("result_ids", [])
-                direction = inf.get("direction", [])
-                break
-        matching_results = Result.objects.filter(id__in=result_ids)
+# def test_result(request, pk, atId):
+#     test = get_object_or_404(Test, pk=pk)
+#     result_ids = []
+#     info = request.session.get(f"test_{test.id}", [])
+#     if test.id == 3 :
+#         for inf in info: 
+#             if inf.get("at_id") == atId:
+#                 result_ids = inf.get("result_ids", [])
+#                 direction = inf.get("direction", [])
+#                 break
+#         matching_results = Result.objects.filter(id__in=result_ids)
 
-        save_test_result(request, test, "\n\n".join([f"{r.name}\n{r.description}" for r in matching_results]))
-        return render(request, "test/result.html", {"result": matching_results, "test": test, "direction": direction})
-    elif test.id == 4: 
-        for inf in info: 
-            if inf.get("at_id") == atId:
-                result_ids = inf.get("result", 0)
-                break
-        result = Result.objects.filter(id=result_ids).first() if result_ids else None
+#         save_test_result(request, test, "\n\n".join([f"{r.name}\n{r.description}" for r in matching_results]))
+#         return render(request, "test/result.html", {"result": matching_results, "test": test, "direction": direction})
+#     elif test.id == 4: 
+#         for inf in info: 
+#             if inf.get("at_id") == atId:
+#                 result_ids = inf.get("result", 0)
+#                 break
+#         result = Result.objects.filter(id=result_ids).first() if result_ids else None
 
-        save_test_result(request, test, result.description if result else "")
-        return render(request, "test/result.html", {"result": [result] if result else [],"test": test}) 
-    elif test.id == 5: 
-        save_test_result(
-            request,
-            test,
-            "\n\n".join([f"{r['name']}\n{r['description']}" for r in info])) 
-        return render(request, "test/result.html", {"result": info if info else [],"test": test})
+#         save_test_result(request, test, result.description if result else "")
+#         return render(request, "test/result.html", {"result": [result] if result else [],"test": test}) 
+#     elif test.id == 5: 
+#         save_test_result(
+#             request,
+#             test,
+#             "\n\n".join([f"{r['name']}\n{r['description']}" for r in info])) 
+#         return render(request, "test/result.html", {"result": info if info else [],"test": test})
     
 
 def results_list(request):
@@ -373,3 +373,142 @@ def save_test_result(request, test, result_text):
         test=test,
         result_text=result_text
     )
+
+
+
+def test_detail(request, pk):
+    test = get_object_or_404(Test, pk=pk)
+    questions = Question.objects.filter(test=test).prefetch_related("answers")
+
+    if request.method == "POST":
+        user_answersq = {}
+
+        for q in questions:
+            answer_id = request.POST.get(f"q{q.id}")
+            if answer_id:
+                user_answersq[q.id] = int(answer_id)
+
+        scoreskettle = defaultdict(int)
+        scoresholland = defaultdict(int)
+
+        session_key = request.session.session_key or request.session.create()
+
+        user_data = request.session.get("user_data", {})
+        status = user_data.get("status")
+        age = user_data.get("age")
+        gender = user_data.get("gender")
+        education_direction = user_data.get("education_direction")
+        work_direction = user_data.get("work_direction")
+        avg_score = user_data.get("avg_score")
+
+        if test.id == 3:
+            for _, aid in user_answersq.items():
+                try:
+                    answer = Answer.objects.get(id=aid)
+                    category = answer.question.category
+                    scoreskettle[category] += answer.score
+                except Answer.DoesNotExist:
+                    continue
+
+            category_results = []
+            for cat_name, score in scoreskettle.items():
+                range_match = Category.objects.filter(
+                    name=cat_name,
+                    minVal__lte=score,
+                    maxVal__gte=score
+                ).first()
+
+                if range_match:
+                    category_results.append(
+                        f"{cat_name}+" if range_match.PlusOrMinus else f"{cat_name}-"
+                    )
+
+            matching_results = [
+                result for result in Result.objects.all()
+                if set(result.categories).issubset(set(category_results))
+            ]
+
+            directions = Direction.objects.all()
+            input_set = set(category_results)
+
+            best = []
+            max_match = 0
+
+            for d in directions:
+                match = len(set(d.categories) & input_set)
+                if match > max_match:
+                    best = [d]
+                    max_match = match
+                elif match == max_match:
+                    best.append(d)
+
+
+            result_text = "\n\n".join([
+                f"{r.name}\n{r.description}" for r in matching_results
+            ]) 
+
+        elif test.id == 4:
+            for _, aid in user_answersq.items():
+                try:
+                    answer = Answer.objects.get(id=aid)
+                    scoresholland[answer.score] += 1
+                except Answer.DoesNotExist:
+                    continue
+
+            max_key = max(scoresholland, key=scoresholland.get)
+
+            result = [
+                r for r in Result.objects.filter(test=test.id)
+                if max_key in r.categories
+            ]
+            result = result[0] if result else None
+
+            result_text = result.description if result else ""
+
+        elif test.id == 5:
+            first_attempt = request.POST.get("first_attempt")
+            second_attempt = request.POST.get("second_attempt")
+
+            first = [int(x) for x in first_attempt.split(",")]
+            second = [int(x) for x in second_attempt.split(",")]
+
+            result_text = analyze_luscher(first, second)
+
+        test_result = TestResult.objects.create(
+            session_key=session_key,
+            status=status,
+            age=age,
+            gender=gender,
+            education_direction=education_direction,
+            work_direction=work_direction,
+            avg_score=avg_score,
+            test=test,
+            result_text=result_text
+        )
+
+        return redirect("test_result", pk=test.id, atId=test_result.id)
+
+    if test.id == 5:
+        return render(request, "test/lusher_detail.html", {
+            "test": test,
+            "questions": questions
+        })
+
+    return render(request, "test/detail.html", {
+        "test": test,
+        "questions": questions,
+    })
+
+def test_result(request, pk, atId):
+    test = get_object_or_404(Test, pk=pk)
+
+    result = get_object_or_404(
+        TestResult,
+        id=atId,
+        test=test
+    )
+
+    return render(request, "test/result.html", {
+        "result": result.result_text,
+        "test": test
+    })

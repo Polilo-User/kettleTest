@@ -13,7 +13,7 @@
 </p>
 
 <p style="text-align:center; font-weight:bold;">
-<span id="timer" style="display:none;">20</span>
+<span id="timer" style="display:none;">60</span>
 </p>
 
 <form method="post">
@@ -151,9 +151,6 @@ firstOrder.join(",");
 
 nextBtn.style.display = "none";
 
-startTimer();
-
-});
 
 
 
@@ -162,7 +159,7 @@ function startTimer(){
 
 timerElement.style.display="block";
 
-timeLeft = 20;
+timeLeft = 60;
 timerElement.textContent = timeLeft;
 
 timer = setInterval(()=>{

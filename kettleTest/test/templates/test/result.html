@@ -1,4 +1,4 @@
-{% extends "main/layout.html" %}
+ {% extends "main/layout.html" %}
 
 {% block title %}Результаты теста{% endblock %}
 
@@ -6,39 +6,28 @@
 <h1 style="text-align:center;">Результаты теста {{ test.title }}</h1>
 
 <div class="results-container" style="margin: 20px auto; max-width: 800px;">
-  {% if direction %}
-  <div class="card" style="padding: 20px; margin-bottom: 20px; border: 1px solid #ddd; border-radius: 8px; background-color: #f9f9f9;">
-    <p style="font-weight: bold; font-size: 18px; color: #333;">Вам подходит одно из следующих направлений:</p>
-    {% for d in direction %}
-      <p style="font-weight: bold; font-size: 16px; margin-bottom: 10px; color: #333;">
-          {{ d }}
-        </p>
-    {% endfor %}
-  </div>
-  {% endif %}
 
   {% if result %}
-    {% for r in result %}
-      <div class="card" style="padding: 20px; margin-bottom: 20px; border: 1px solid #ddd; border-radius: 8px; background-color: #f9f9f9;">
-        <p style="font-weight: bold; font-size: 18px; margin-bottom: 10px; color: #333;">
-          {{ r.name }}
-        </p>
-        <hr style="border: none; border-top: 1px solid #ccc; margin: 10px 0;">
-        <p style="font-size: 16px; color: #555; line-height: 1.5;">
-          {{ r.description }}
-        </p>
+    <div class="card" style="padding: 25px; border: 1px solid #ddd; border-radius: 10px; background-color: #f9f9f9;">
+      
+      <!-- текст результата -->
+      <div style="font-size: 16px; color: #333; line-height: 1.6; white-space: pre-line;">
+        {{ result }}
       </div>
-    {% endfor %}
+
+    </div>
   {% else %}
     <p style="text-align:center; color: #777;">Нет доступных результатов.</p>
   {% endif %}
+
 </div>
 
-<!-- Кнопка "Вернуться к тестам" -->
 <div style="text-align:center; margin-top: 30px;">
+
   <a href="{% url 'test_home' %}" 
-     style="display:inline-block; background:#007bff; color:#fff; padding:10px 18px; border-radius:6px; text-decoration:none; font-size:15px; transition:background 0.2s;">
-     ← Вернуться к тестам
+     style="display:inline-block; background:#007bff; color:#fff; padding:10px 18px; border-radius:6px; text-decoration:none; font-size:15px; margin-right:10px;">
+     ← К тестам
   </a>
+
 </div>
 {% endblock %}
